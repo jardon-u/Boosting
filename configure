@@ -1,0 +1,31 @@
+#!/bin/sh
+
+if [ -f Makefile.rules ]; then
+    rm Makefile.rules
+fi
+
+echo "CC=`which g++`" >> Makefile.rules
+
+mkdir obj
+
+case `uname` in
+    "NetBSD" )
+	echo -n "FLAG=-Wall -W -ansi " >> Makefile.rules
+	;;
+    "SunOS" )
+	echo -n "FLAG=-Wall -W -ansi -pedantic" >> Makefile.rules
+	echo "-m64" >> Makefile.rules
+	;;
+    "OSF1" )
+	echo "FLAG=-w2 -std1 -warnprotos" >> Makefile.rules
+	;;
+    "Linux" )
+	echo "FLAG=-Wall -W -pedantic" >> Makefile.rules
+	;;
+    "MacOSX" )
+	echo -n "FLAG=-Wall -W -ansi -pedantic" >> Makefile.rules
+	echo " -fomit-frame-pointer" >> Makefile.rules
+	;;
+    "HP-UX" )
+	echo "FLAG=-Wall -W -ansi -pedantic" >> Makefile.rules
+esac
