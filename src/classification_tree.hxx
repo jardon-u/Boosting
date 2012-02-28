@@ -35,9 +35,9 @@ namespace make
     std::vector<double> min(*v[0].x);
 
     unsigned dim = (v[0].x)->size();
-    for (unsigned i = 0; i < v.size(); i++)
+    for (size_t i = 0; i < v.size(); i++)
     {
-      for (unsigned j = 0; j < dim; j++)
+      for (size_t j = 0; j < dim; j++)
       {
         if ((*v[i].x)[j] < min[j])
           min[j] = (*v[i].x)[j];
@@ -49,14 +49,12 @@ namespace make
 
 }
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline
 void
 classification_tree<T,INDEX,OBS>::fit(const std::vector<T>&   x,
-                                            const std::vector<int>& y,
-                                            std::vector<double>&    w)
+                                      const std::vector<int>& y,
+                                      std::vector<double>&    w)
 {
   //Group data // FIXME: v should be the unique argument.
   obs_t v;
@@ -72,14 +70,12 @@ classification_tree<T,INDEX,OBS>::fit(const std::vector<T>&   x,
 }
 
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline
 void
 classification_tree<T,INDEX,OBS>::get_splitting(unsigned&     j,
-                                                      value_t&      s,
-                                                      const obs_t&  v)
+                                                value_t&      s,
+                                                const obs_t&  v)
 {
   double max_gain = std::numeric_limits<double>::max();
 
@@ -87,8 +83,9 @@ classification_tree<T,INDEX,OBS>::get_splitting(unsigned&     j,
   std::vector<double> max = make::max(v);
   std::vector<double> offset(max);
   for (unsigned i = 0; i < min.size(); i++)
-    offset[i] = (max[i] - min[i]) / 100.;
-  for (unsigned dim = 0; dim < offset.size(); dim++) // dim <=> j
+    offset[i] = (max[i] - min[i]) / 100.; //FIXME: Remove this constant
+
+  for (size_t dim = 0; dim < offset.size(); dim++) // dim <=> j
   {
     //std::cout << offset[dim] << std::endl;
     // no variation on this dimension.
@@ -100,8 +97,10 @@ classification_tree<T,INDEX,OBS>::get_splitting(unsigned&     j,
          s_ += offset[dim])
     {
       // Compute sum
-      f_inf<point_t> fun(dim,s_);
-      double gain = INDEX::compute(v,fun/*, nb_cat*/);
+      //f_inf<point_t> fun(dim,s_);
+      const std::function<bool(point_t)> fun =
+        [dim,s_](point_t x)->bool { return x[dim] <= s_; };
+      double gain = INDEX::compute(v,fun /*, nb_cat*/);
 
       // Save j and s associated to the minimum sum
       if (gain < max_gain) // this test should be part of INDEX
@@ -116,9 +115,7 @@ classification_tree<T,INDEX,OBS>::get_splitting(unsigned&     j,
 }
 
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline
 auto classification_tree<T,INDEX,OBS>::get_label(obs_t& v) -> label_t
 {
@@ -126,8 +123,9 @@ auto classification_tree<T,INDEX,OBS>::get_label(obs_t& v) -> label_t
 
   // Only valid for the two classes (1,-1) problem
   double s = 0;
-  for (unsigned i = 0; i < v.size(); i++)
-    s += v[i].y;
+
+  for (auto e : v)
+    s += e.y;
 
   return s / v.size();
 
@@ -151,9 +149,7 @@ auto classification_tree<T,INDEX,OBS>::get_label(obs_t& v) -> label_t
 }
 
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline auto
 classification_tree<T,INDEX,OBS>::split(obs_t v, int depth)
 -> tree<T> *
@@ -169,27 +165,31 @@ classification_tree<T,INDEX,OBS>::split(obs_t v, int depth)
 
   // If all labels are equal do not split
   if (all_equals(v))
-    return new tree<point_t>(new f_true<point_t>(), static_cast<double>(v[0].y));
+    return new tree<point_t>( [](point_t)->bool { return true; },
+                              static_cast<double>(v[0].y) );
 
-  unsigned label = get_label(v);
+  label_t label = get_label(v);
 
   // If only few point_ts remaining do not split
   if (v.size() <= max_node_size || depth >= depth_limit)
-    return new tree<point_t>(new f_true<point_t>(), label);
+    return new tree<point_t>( [](point_t)->bool { return true; },
+                             label);
 
   get_splitting(j, s, v);
   //std::cout << "Splitting done." << std::endl;
 
   // Construct point_t subsets
-  tree<point_t> * t = new tree<point_t>(new f_inf<point_t>(j, s));
+tree<point_t> * t = new tree<point_t>([j,s](point_t x)->bool{ return x[j] <= s; });
+                                                          //new f_inf<point_t>(j, s));
   obs_t v1, v2; // Comment: the use of these vectors IS an optimization.
   //std::cerr << "Start sub vector allocation: {";
-  for (unsigned i = 0; i < v.size(); i++)
+
+  for (auto e : v)
   {
-    if ((*t->f)(*v[i].x))
-      v1.push_back(v[i]);
+    if ((t->f)(*e.x))
+      v1.push_back(e);
     else
-      v2.push_back(v[i]);
+      v2.push_back(e);
   }
   //std::cerr << "}" << std::endl;
 
@@ -216,7 +216,8 @@ classification_tree<T,INDEX,OBS>::split(obs_t v, int depth)
     else //else may happen? (ie. labels are different and splitting didn't split anything)
       throw std::runtime_error("Unexpected: label!=0, splitting failed");
 
-    return new tree<point_t>(new f_true<point_t>(), label);
+    return new tree<point_t>( [](point_t)->bool { return true; },
+                              label);
   }
 
   v.clear(); // keep memory usage +/- constant
@@ -230,9 +231,7 @@ classification_tree<T,INDEX,OBS>::split(obs_t v, int depth)
 }
 
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline auto
 classification_tree<T,INDEX,OBS>::operator()(const point_t& p)
 -> double
@@ -249,25 +248,22 @@ classification_tree<T,INDEX,OBS>::operator()(const point_t& p)
 }
 
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline auto
 classification_tree<T,INDEX,OBS>::all_equals( obs_t &v )
 -> bool
 {
-  for (unsigned i = 1; i < v.size(); i++)
+  label_t first = v[0].y;
+  for (auto e : v)
   {
-    if (v[i].y != v[0].y)
+    if (e.y != first)
       return false;
   }
   return true;
 }
 
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline
 classification_tree<T,INDEX,OBS>::
 classification_tree(const classification_tree<T,INDEX,OBS>& rh)
@@ -278,9 +274,7 @@ classification_tree(const classification_tree<T,INDEX,OBS>& rh)
 }
 
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline auto
 classification_tree<T,INDEX,OBS>::
 operator=(const classification_tree<T,INDEX,OBS>& rh)
@@ -295,9 +289,7 @@ operator=(const classification_tree<T,INDEX,OBS>& rh)
 }
 
 
-template <typename T,
-          typename INDEX,
-          typename OBS>
+template <typename T, typename INDEX, typename OBS>
 inline
 classification_tree<T,INDEX,OBS>::~classification_tree()
 {

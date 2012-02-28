@@ -27,7 +27,7 @@ namespace classification
 
 
   template <typename T>
-  struct f_inf : public fun<T>
+  struct f_inf : public std::function<bool(T)>
   {
     f_inf(unsigned dim, typename T::value_type t) //FIXME: Assume type value exists?
       : i(dim), t(t)

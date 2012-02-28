@@ -6,9 +6,9 @@
 
 # include <vector>
 # include <stdexcept>
+# include <functional>
 
 # include "tree.hh"
-# include "fun.hh"
 
 // core directories don't follow the namespace rule
 
@@ -28,22 +28,22 @@ namespace classification
     /// Ctor with label
     /// \p fun Splitting function
     /// \p label
-    tree(const fun<T> * fun, double label);
+    tree(const std::function<bool(T)> fun, double label);
 
     /// Ctor
     /// \p fun Splitting function
-    tree(const fun<T> * fun);
+    tree(const std::function<bool(T)> fun);
 
     /// return pointer deepest node holding \p p.
     tree * get_region(const T& p);
 
-    /// Assignment operator performing deep copy.   
+    /// Assignment operator performing deep copy.
     tree& operator=(const tree& t);
 
     /// Dtor
     ~tree();
 
-    const fun<T> * f; ///< Splitting function.
+    const std::function<bool(T)> f; ///< Splitting function.
     tree * ttrue;     ///< Map the subset f(p).
     tree * tfalse;    ///< Map the subset !f(p).
     double label;     ///< label of the branch.
@@ -53,28 +53,26 @@ namespace classification
   /// Implementation -
 
   template <typename T>
-  tree<T>::tree(const fun<T> * fun)
+  tree<T>::tree(const std::function<bool(T)> fun)
     :  f(fun), ttrue(0), tfalse(0), label(0)
   {	}
 
   template <typename T>
-  tree<T>::tree(const fun<T> * fun, double label_)
+  tree<T>::tree(const std::function<bool(T)> fun, double label_)
     :  f(fun), ttrue(0), tfalse(0), label(label_)
   {	}
 
 
   template <typename T>
   inline
-  tree<T>::tree( const tree& t )
-    : f(0), ttrue(0), tfalse(0)
+  tree<T>::tree( const tree& rh )
+    : f(rh.f), ttrue(0), tfalse(0)
   {
-    if (t.ttrue != 0)
-      ttrue  = new tree(*t.ttrue);
-    if (t.tfalse != 0)
-      tfalse = new tree(*t.tfalse);
-    if (t.f != 0)
-      f   = t.f->clone(); // virtual constructor idiom
-    label = t.label;
+    label = rh.label;
+    if (rh.ttrue != 0)
+      ttrue  = new tree(*rh.ttrue);
+    if (rh.tfalse != 0)
+      tfalse = new tree(*rh.tfalse);
   }
 
 
@@ -86,7 +84,7 @@ namespace classification
 
     while (t != 0 && (t->ttrue != 0 || t->tfalse != 0))
     {
-      if ((*t->f)(p))
+      if ((t->f)(p))
         t = t->ttrue;
       else
         t = t->tfalse;
@@ -104,9 +102,9 @@ namespace classification
   {
     if (&t != this)
     {
-      tree     * tmp_true  = 0;
-      tree     * tmp_false = 0;
-      fun<T> * tmp_fun = 0;
+      tree * tmp_true  = 0;
+      tree * tmp_false = 0;
+      std::function<bool(T)> * tmp_fun = 0;
 
       try {
         if (t.ttrue != 0)
@@ -141,7 +139,6 @@ namespace classification
   {
     delete tfalse;
     delete ttrue;
-    delete f;
   }
 
 } // end of namespace classification

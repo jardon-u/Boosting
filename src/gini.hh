@@ -19,10 +19,12 @@ namespace classification
     /// Compute the weighted index summation for label 1 and -1.
     /// \p set original set of observation.
     /// \p fun subset function
-    template <typename S, template <class> class F, class T>
-    static double compute(const S& set, const F<T>& fun, unsigned nb_cat)
+    template <typename S, typename T>
+    static double compute(const S& set, const std::function<bool(T)>& fun,
+                          unsigned nb_cat)
     {
-      f_not<T> notfun(fun);
+      //f_not<T> notfun(fun);
+      std::function<bool(T)> notfun = [fun](T t)->bool { return !fun(t); };
       double left  = index(set, fun, nb_cat);
       double right = index(set, notfun, nb_cat);
       return left + right;
