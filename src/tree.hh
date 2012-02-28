@@ -104,30 +104,25 @@ namespace classification
     {
       tree * tmp_true  = 0;
       tree * tmp_false = 0;
-      std::function<bool(T)> * tmp_fun = 0;
 
+      f = t.f;
       try {
         if (t.ttrue != 0)
           tmp_true  = new tree(*t.ttrue);
         if (t.tfalse != 0)
           tmp_false = new tree(*t.tfalse);
-        if (t.fun != 0)
-          tmp_fun   = t.f->clone(); // virtual constructor idiom
       } catch (...) {
         // Mandatory if tmp_true creation succeed but tmp_false failed
         delete tmp_true;
         delete tmp_false;
-        delete tmp_fun;
         throw;
       }
 
       delete ttrue;
       delete tfalse;
-      delete f;
 
       ttrue  = tmp_true;
       tfalse = tmp_false;
-      f      = tmp_fun;
       label  = t.label;
     }
     return *this;
