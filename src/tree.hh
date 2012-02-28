@@ -54,24 +54,24 @@ namespace classification
 
   template <typename T>
   tree<T>::tree(const std::function<bool(T)> fun)
-    :  f(fun), ttrue(0), tfalse(0), label(0)
+    :  f(fun), ttrue(nullptr), tfalse(nullptr), label(0)
   {	}
 
   template <typename T>
   tree<T>::tree(const std::function<bool(T)> fun, double label_)
-    :  f(fun), ttrue(0), tfalse(0), label(label_)
+    :  f(fun), ttrue(nullptr), tfalse(nullptr), label(label_)
   {	}
 
 
   template <typename T>
   inline
   tree<T>::tree( const tree& rh )
-    : f(rh.f), ttrue(0), tfalse(0)
+    : f(rh.f), ttrue(nullptr), tfalse(nullptr)
   {
     label = rh.label;
-    if (rh.ttrue != 0)
+    if (rh.ttrue != nullptr)
       ttrue  = new tree(*rh.ttrue);
-    if (rh.tfalse != 0)
+    if (rh.tfalse != nullptr)
       tfalse = new tree(*rh.tfalse);
   }
 
@@ -82,14 +82,14 @@ namespace classification
   {
     tree * t = this;
 
-    while (t != 0 && (t->ttrue != 0 || t->tfalse != 0))
+    while (t != nullptr && (t->ttrue != nullptr || t->tfalse != nullptr))
     {
       if ((t->f)(p))
         t = t->ttrue;
       else
         t = t->tfalse;
     }
-    if (t == 0)
+    if (t == nullptr)
       throw std::runtime_error("get_region failed");
 
     return t;
@@ -102,14 +102,14 @@ namespace classification
   {
     if (&t != this)
     {
-      tree * tmp_true  = 0;
-      tree * tmp_false = 0;
+      tree * tmp_true  = nullptr;
+      tree * tmp_false = nullptr;
 
       f = t.f;
       try {
-        if (t.ttrue != 0)
+        if (t.ttrue != nullptr)
           tmp_true  = new tree(*t.ttrue);
-        if (t.tfalse != 0)
+        if (t.tfalse != nullptr)
           tmp_false = new tree(*t.tfalse);
       } catch (...) {
         // Mandatory if tmp_true creation succeed but tmp_false failed
