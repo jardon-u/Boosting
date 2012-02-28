@@ -17,6 +17,8 @@
 
 namespace classification
 {
+  //FIXME: C++11 signature style is not super readable... needed for get_label
+  //FIXME: maybe use classic style for prototype..
 
   ///
   /// \brief Classification tree
@@ -24,14 +26,20 @@ namespace classification
   /// typename \p T, point.
   /// typename \p INDEX, index policy.
   ///
-  template <typename T, typename INDEX>
+  template < typename T,
+             typename INDEX,
+             typename OBS = std::deque< observation<const T*, int, double> >
+            // deque Not implemented with contiguous storage (which is needed).
+            >
   struct classification_tree
   {
-    typedef T point; ///< point type.
-    typedef typename T::value_type value; ///< point coordinate type.
+    typedef int    label_t;  ///< label type.
+    typedef double weight_t; ///< weight type.
+    typedef T      point_t;  ///< point type.
+    typedef typename T::value_type value_t; ///< point coordinate type.
 
-    // Not implemented with contiguous storage (which is needed).
-    typedef std::deque< observation<const point*,int,double> > V;
+    //typedef Container< observation<const point_t*, label_t, weight_t> > obs_t;
+    typedef OBS obs_t;
 
     /// Ctor
     classification_tree()
@@ -46,38 +54,40 @@ namespace classification
     /// \p x_ data
     /// \p y_ labels
     /// \p w_ weights
-    void fit( const std::vector<T>& x,
-              const std::vector<int>& y,
-              std::vector<double>& w);
+    void fit( const std::vector<point_t>& x,
+              const std::vector<label_t>& y,
+              std::vector<weight_t>&      w );
 
     /// Recursively split region
-    tree<point> * split( V v, int depth = 0 );
+    auto split( obs_t v, int depth = 0 ) -> tree<point_t> *;
 
     /// Get splitting dimension j and threshold s
-    void get_splitting( unsigned& j, value& s, const V& v );
+    auto get_splitting( size_t& j, value_t& s, const obs_t& v ) -> void;
 
     /// Get majority label in vector v
-    double get_label( V& v );
+    auto get_label( obs_t& v ) -> label_t;
 
     /// Apply classifier. return a label
-    double operator()( const point& p );
+    auto operator()( const point_t& p ) -> double;
 
     //// Internal
     classification_tree( const classification_tree& rh );
     classification_tree& operator=( const classification_tree& rh );
 
-    static const std::string name()
+    static auto name() -> const std::string
     {
       return std::string("Classification tree (") + INDEX::name() + ")";
     }
 
     // Check
-    bool all_equals( V &v );
+    auto all_equals( obs_t &v ) -> bool;
 
-    tree<point> * tree_; ///< tree
-    enum { depth_limit = 2 };
+    tree<point_t> * tree_; ///< tree
+
+    //FIXME: The following must be dynamic
+    enum { depth_limit   = 2 };
     enum { max_node_size = 3 };
-    enum { nb_cat = 2 };
+    enum { nb_cat        = 2 };
   };
 
 #   include "classification_tree.hxx"

@@ -15,11 +15,11 @@ namespace classification
   class adaboost
   {
   public:
-    typedef typename C::point feature_t;
+    typedef typename C::point_t feature_t;
 
     adaboost(const std::vector<feature_t>& x,
              const       std::vector<int>& y,
-             unsigned                nb_iter)
+             unsigned nb_iter)
       : M(nb_iter), N(x.size()), x(x), y(y)
     {
       if (N == 0)
