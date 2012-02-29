@@ -49,10 +49,10 @@ namespace make
 
 }
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline
 void
-classification_tree<T,INDEX,OBS>::fit(const std::vector<T>&   x,
+classification_tree<T,INDEX,C>::fit(const std::vector<T>&   x,
                                       const std::vector<int>& y,
                                       std::vector<double>&    w)
 {
@@ -70,10 +70,10 @@ classification_tree<T,INDEX,OBS>::fit(const std::vector<T>&   x,
 }
 
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline
 void
-classification_tree<T,INDEX,OBS>::get_splitting(unsigned&     j,
+classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
                                                 value_t&      s,
                                                 const obs_t&  v)
 {
@@ -115,9 +115,9 @@ classification_tree<T,INDEX,OBS>::get_splitting(unsigned&     j,
 }
 
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline
-auto classification_tree<T,INDEX,OBS>::get_label(obs_t& v) -> label_t
+auto classification_tree<T,INDEX,C>::get_label(obs_t& v) -> label_t
 {
   assert(v.size() != 0 && "Get label failed");
 
@@ -149,9 +149,9 @@ auto classification_tree<T,INDEX,OBS>::get_label(obs_t& v) -> label_t
 }
 
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline auto
-classification_tree<T,INDEX,OBS>::split(obs_t v, int depth)
+classification_tree<T,INDEX,C>::split(obs_t v, int depth)
 -> tree<T> *
 {
   size_t  j = 0; // dim (orientation)
@@ -231,9 +231,9 @@ tree<point_t> * t = new tree<point_t>([j,s](point_t x)->bool{ return x[j] <= s; 
 }
 
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline auto
-classification_tree<T,INDEX,OBS>::operator()(const point_t& p)
+classification_tree<T,INDEX,C>::operator()(const point_t& p)
 -> double
 {
   assert(tree_ != 0 && "Classification failure");
@@ -248,9 +248,9 @@ classification_tree<T,INDEX,OBS>::operator()(const point_t& p)
 }
 
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline auto
-classification_tree<T,INDEX,OBS>::all_equals( obs_t &v )
+classification_tree<T,INDEX,C>::all_equals( obs_t &v )
 -> bool
 {
   label_t first = v[0].y;
@@ -263,10 +263,10 @@ classification_tree<T,INDEX,OBS>::all_equals( obs_t &v )
 }
 
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline
-classification_tree<T,INDEX,OBS>::
-classification_tree(const classification_tree<T,INDEX,OBS>& rh)
+classification_tree<T,INDEX,C>::
+classification_tree(const classification_tree<T,INDEX,C>& rh)
    :  tree_(0)
 {
   if (rh.tree_ != 0)
@@ -274,11 +274,11 @@ classification_tree(const classification_tree<T,INDEX,OBS>& rh)
 }
 
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline auto
-classification_tree<T,INDEX,OBS>::
-operator=(const classification_tree<T,INDEX,OBS>& rh)
--> classification_tree<T,INDEX,OBS>&
+classification_tree<T,INDEX,C>::
+operator=(const classification_tree<T,INDEX,C>& rh)
+-> classification_tree<T,INDEX,C>&
 {
   if (this != &rh)
   {
@@ -289,9 +289,9 @@ operator=(const classification_tree<T,INDEX,OBS>& rh)
 }
 
 
-template <typename T, typename INDEX, typename OBS>
+template < typename T, typename INDEX, template <class, class> class C>
 inline
-classification_tree<T,INDEX,OBS>::~classification_tree()
+classification_tree<T,INDEX,C>::~classification_tree()
 {
   delete tree_;
 }

@@ -25,13 +25,11 @@ namespace classification
   /// Template parameter:
   /// typename \p T, point type.
   /// typename \p INDEX, index policy.
-  /// typename \p OBS, Observation vector type.
+  /// typename \p C, template template STL container
   ///
   template < typename T,
              typename INDEX,
-             typename OBS = std::deque< observation<const T*, int, double> >
-            // deque Not implemented with contiguous storage (which is needed).
-            >
+             template < class U, class V = std::allocator<U> > class C = std::deque >
   struct classification_tree
   {
     typedef int    label_t;  ///< label type.
@@ -39,10 +37,7 @@ namespace classification
     typedef T      point_t;  ///< point type.
     typedef typename T::value_type value_t; ///< point coordinate type.
 
-    //OBS could be replaced by a template template parameter Container.
-    //But it seems not easily compatible with the STL.
-    //typedef Container< observation<const point_t*, label_t, weight_t> > obs_t;
-    typedef OBS obs_t;
+    typedef C< observation<const point_t*, label_t, weight_t> > obs_t;
 
     /// Ctor
     classification_tree()

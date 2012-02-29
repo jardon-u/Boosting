@@ -16,9 +16,10 @@ namespace classification
   {
   public:
     typedef typename C::point_t feature_t;
+    typedef typename C::label_t label_t;
 
     adaboost(const std::vector<feature_t>& x,
-             const       std::vector<int>& y,
+             const std::vector<label_t>&   y,
              unsigned nb_iter)
       : M(nb_iter), N(x.size()), x(x), y(y)
     {
@@ -32,7 +33,7 @@ namespace classification
     void boost()
     {
       std::vector<double> w(N,1./N);
-      for (unsigned m = 0; m < M; m++)
+      for (size_t m = 0; m < M; m++)
       {
         g[m].fit(x,y,w);
 
@@ -47,13 +48,13 @@ namespace classification
         alpha_[m] = - 0.5 * std::log((1 - err_[m]) / err_[m]);
 
         float sum = 0;
-        for (unsigned i = 0; i < N; i++)
+        for (size_t i = 0; i < N; i++)
         {
           w[i] = w[i] * std::exp(-1 * alpha_[m] *
                                  static_cast<int>(y[i] != g[m](x[i])));
           sum += w[i];
         }
-        for (unsigned i = 0; i < N; i++)
+        for (size_t i = 0; i < N; i++)
           w[i] /= sum;
       }
 
@@ -62,7 +63,7 @@ namespace classification
     double error(int m, const std::vector<double>& w)
     {
       double err = 0;
-      for (unsigned i = 0; i < N; i++)
+      for (size_t i = 0; i < N; i++)
         err += w[i] * static_cast<int>(y[i] != g[m](x[i]));
       return err;
     }
@@ -88,7 +89,7 @@ namespace classification
     unsigned M, N;
 
     const std::vector<feature_t>&   x;
-    const std::vector<int>&         y;
+    const std::vector<label_t>&     y;
   };
 
 
