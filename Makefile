@@ -5,44 +5,45 @@
 ## Keywords: Boosting
 ## X-URL:
 
-include Makefile.rules
+-include Makefile.rules
 
-PROJ=compBio
-BIN=$(PROJ)
+PROJ=boosting
+BIN=test
+VERSION=0.5
+
+TAR_FILE=$(PROJ)-$(VERSION).tar.bz2
 SRC=main.cc
 #HDR=adaboost.hh classification_tree.hh classification_tree.hxx tree.hh observation.hh misclass.hh
 OBJ=$(SRC:.cc=.o)
 VPATH=src
+LFLAGS=-Isrc
 vpath %.o obj
 
-FILES=src configure check obj README
+FILES=src README
+
+all: $(BIN)
 
 $(BIN): $(OBJ) $(HDR)
-	$(CC) $(FLAG) $(patsubst %,obj/%,$(OBJ)) -o $(BIN)
+	$(CCXX) $(CFLAGS) $(patsubst %, obj/%,$(OBJ)) -o $(BIN) $(LFLAGS)
 
 %.o : %.cc Makefile
-	$(CC) -c $(FLAG) $< -o obj/$@
-
-gui:
-	cd gui && make
-
-check:
-	cd check && ./moulinette.sh
+	$(CCXX) -c $(CFLAGS) $< -o obj/$@
 
 clean:
 	rm -f $(BIN)
 	rm -f obj/*.o
+	rm -f .deps
 
-dist: clean fixme AUTHORS svn_check
+dist: all clean fixme AUTHORS
 	rm -rf $(PROJ)
 	mkdir $(PROJ)
-	cp -r Makefile AUTHORS FIXME $(FILES) $(PROJ)
+	cp -r configure Makefile AUTHORS FIXME $(FILES) $(PROJ)
 	-find $(PROJ) -name ".svn" -exec rm -rf {} \;
 	-find $(PROJ) -name "*~" -exec rm -rf {} \;
 	-find $(PROJ) -name "#*" -exec rm -rf {} \;
-	tar cjvf $(PROJ).tar.bz2 $(PROJ)
+	tar cjvf $(TAR_FILE) $(PROJ)
 	rm -rf $(PROJ)
-	chmod 644 $(PROJ).tar.bz2
+	chmod 644 $(TAR_FILE)
 
 svn_check:
 	@svn st | grep \? ; [ $$? = "1" ] \
@@ -70,10 +71,11 @@ commit:
 fixme:
 	-rm -f FIXME
 	-grep "FIXME" -r . --line-number \
-        --exclude="Makefile" --exclude-dir=".svn" > FIXME
+        --exclude="Makefile" --exclude-dir=".svn" \
+	                           --exclude-dir=".git" > FIXME
 
 .deps:
-	gcc -MM $(SRC:%=src/%) > .deps
+	g++ -MM $(SRC:%=src/%) > .deps
 
 .PHONY: doc check .deps gui
 
