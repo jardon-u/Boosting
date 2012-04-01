@@ -14,10 +14,9 @@ namespace make
   {
     std::vector<double> max(*v[0].x);
 
-    unsigned dim = (v[0].x)->size();
-    for (unsigned i = 0; i < v.size(); i++)
+    for (std::size_t i = 0; i < v.size(); i++)
     {
-      for (unsigned j = 0; j < dim; j++)
+      for (std::size_t j = 0; j < max.size(); j++)
       {
         if ((*v[i].x)[j] > max[j])
           max[j] = (*v[i].x)[j];
@@ -34,10 +33,9 @@ namespace make
   {
     std::vector<double> min(*v[0].x);
 
-    unsigned dim = (v[0].x)->size();
-    for (size_t i = 0; i < v.size(); i++)
+    for (std::size_t i = 0; i < v.size(); i++)
     {
-      for (size_t j = 0; j < dim; j++)
+      for (std::size_t j = 0; j < min.size(); j++)
       {
         if ((*v[i].x)[j] < min[j])
           min[j] = (*v[i].x)[j];
@@ -53,8 +51,8 @@ template < typename T, typename INDEX, template <class, class> class C>
 inline
 void
 classification_tree<T,INDEX,C>::fit(const std::vector<T>&   x,
-                                      const std::vector<int>& y,
-                                      std::vector<double>&    w)
+                                    const std::vector<int>& y,
+                                    std::vector<double>&    w)
 {
   //Group data // FIXME: v should be the unique argument.
   obs_t v;
@@ -74,15 +72,16 @@ template < typename T, typename INDEX, template <class, class> class C>
 inline
 void
 classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
-                                                value_t&      s,
-                                                const obs_t&  v)
+                                              value_t&      s,
+                                              const obs_t&  v)
 {
   double max_gain = std::numeric_limits<double>::max();
 
   std::vector<double> min = make::min(v);
   std::vector<double> max = make::max(v);
   std::vector<double> offset(max);
-  for (unsigned i = 0; i < min.size(); i++)
+
+  for (std::size_t i = 0; i < min.size(); i++)
     offset[i] = (max[i] - min[i]) / 100.; //FIXME: Remove this constant
 
   for (size_t dim = 0; dim < offset.size(); dim++) // dim <=> j
@@ -97,10 +96,10 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
          s_ += offset[dim])
     {
       // Compute sum
-      //f_inf<point_t> fun(dim,s_);
+
       const std::function<bool(point_t)> fun =
         [dim,s_](point_t x)->bool { return x[dim] <= s_; };
-      double gain = INDEX::compute(v,fun /*, nb_cat*/);
+      double gain = INDEX::compute(v, fun /*, nb_cat*/);
 
       // Save j and s associated to the minimum sum
       if (gain < max_gain) // this test should be part of INDEX
@@ -150,40 +149,37 @@ auto classification_tree<T,INDEX,C>::get_label(obs_t& v) -> label_t
 
 
 template < typename T, typename INDEX, template <class, class> class C>
-inline auto
-classification_tree<T,INDEX,C>::split(obs_t v, int depth)
--> tree<T> *
+inline
+tree<T> *
+classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
 {
-  size_t  j = 0; // dim (orientation)
-  value_t s = (*v[0].x)[0]; // s_  (split point)
-
-  //std::cerr << "## "<<  v.size() << std::endl;
-
-  // No point
   if (v.size() == 0)
     return 0;
 
+  size_t  j = 0;            // dimension to split
+  value_t s = (*v[0].x)[0]; // splitting point
+
+  //std::cerr << "## "<<  v.size() << std::endl;
+
   // If all labels are equal do not split
   if (all_equals(v))
-    return new tree<point_t>( [](point_t)->bool { return true; },
-                              static_cast<double>(v[0].y) );
+    return new tree<point_t>( true_lambda, static_cast<double>(v[0].y) );
 
   label_t label = get_label(v);
 
   // If only few point_ts remaining do not split
   if (v.size() <= max_node_size || depth >= depth_limit)
-    return new tree<point_t>( [](point_t)->bool { return true; },
-                             label);
+    return new tree<point_t>( true_lambda, label);
 
   get_splitting(j, s, v);
   //std::cout << "Splitting done." << std::endl;
 
   // Construct point_t subsets
-tree<point_t> * t = new tree<point_t>([j,s](point_t x)->bool{ return x[j] <= s; });
-                                                          //new f_inf<point_t>(j, s));
-  obs_t v1, v2; // Comment: the use of these vectors IS an optimization.
-  //std::cerr << "Start sub vector allocation: {";
+  tree<point_t> * t = new tree<point_t>([j,s](point_t x)->bool{ return x[j] <= s; });
 
+  obs_t v1, v2; // Comment: the use of these vectors IS an optimization.
+
+  //std::cerr << "Start sub vector allocation: {";
   for (auto e : v)
   {
     if ((t->f)(*e.x))
@@ -213,10 +209,10 @@ tree<point_t> * t = new tree<point_t>([j,s](point_t x)->bool{ return x[j] <= s; 
       // WARNING: We are not able to split. Node is randomly classified.
       label = static_cast<double>(v[0].y);
     }
-    else //else may happen? (ie. labels are different and splitting didn't split anything)
+    else // no ? (ie. labels are different and splitting didn't split anything)
       throw std::runtime_error("Unexpected: label!=0, splitting failed");
 
-    return new tree<point_t>( [](point_t)->bool { return true; },
+    return new tree<point_t>( true_lambda,
                               label);
   }
 

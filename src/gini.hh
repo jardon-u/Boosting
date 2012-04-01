@@ -5,6 +5,7 @@
 # define _GINI_HH
 
 # include "observation.hh"
+# include <functional>
 
 namespace classification
 {
@@ -23,10 +24,8 @@ namespace classification
     static double compute(const S& set, const std::function<bool(T)>& fun,
                           unsigned nb_cat)
     {
-      //f_not<T> notfun(fun);
-      std::function<bool(T)> notfun = [fun](T t)->bool { return !fun(t); };
-      double left  = index(set, fun, nb_cat);
-      double right = index(set, notfun, nb_cat);
+      double left  = index(set, fun,                    nb_cat);
+      double right = index(set, std::negate<bool>(fun), nb_cat);
       return left + right;
     }
 

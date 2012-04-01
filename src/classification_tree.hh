@@ -39,9 +39,14 @@ namespace classification
 
     typedef C< observation<const point_t*, label_t, weight_t> > obs_t;
 
+    const std::function<bool(point_t)> true_lambda;
+
     /// Ctor
-    classification_tree()
-      : tree_(0) {}
+    classification_tree(unsigned d = 2, unsigned m = 3, unsigned n = 2)
+      : tree_(nullptr), depth_limit(d), max_node_size(m), nb_cat(n)
+    {
+      true_lambda = [](point_t)->bool { return true; };
+    }
 
     /// Dtor
     virtual ~classification_tree();
@@ -57,16 +62,16 @@ namespace classification
               std::vector<weight_t>&      w );
 
     /// Recursively split region
-    auto split( obs_t v, int depth = 0 ) -> tree<point_t> *;
+    tree<point_t> * split( obs_t v, unsigned depth = 0 );
 
     /// Get splitting dimension j and threshold s
-    auto get_splitting( size_t& j, value_t& s, const obs_t& v ) -> void;
+    void get_splitting( size_t& j, value_t& s, const obs_t& v );
 
     /// Get majority label in vector v
-    auto get_label( obs_t& v ) -> label_t;
+    label_t get_label( obs_t& v );
 
     /// Apply classifier. return a label
-    auto operator()( const point_t& p ) -> double;
+    double operator()( const point_t& p );
 
     //// Internal
     classification_tree( const classification_tree& rh );
@@ -82,10 +87,9 @@ namespace classification
 
     tree<point_t> * tree_; ///< tree
 
-    //FIXME: The following must be dynamic
-    enum { depth_limit   = 2 };
-    enum { max_node_size = 3 };
-    enum { nb_cat        = 2 };
+    unsigned depth_limit;
+    unsigned max_node_size;
+    unsigned nb_cat;
   };
 
 #   include "classification_tree.hxx"
