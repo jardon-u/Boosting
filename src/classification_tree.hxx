@@ -47,14 +47,14 @@ namespace make
 
 }
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline
 void
 classification_tree<T,INDEX,C>::fit(const std::vector<T>&   x,
                                     const std::vector<int>& y,
                                     std::vector<double>&    w)
 {
-  //Group data // FIXME: v should be the unique argument.
+  //Group data // FIXME: v should be the unique argument?
   obs_t v;
   for (std::size_t i = 0; i < x.size(); i++)
   {
@@ -68,7 +68,7 @@ classification_tree<T,INDEX,C>::fit(const std::vector<T>&   x,
 }
 
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline
 void
 classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
@@ -79,10 +79,10 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
 
   std::vector<double> min = make::min(v);
   std::vector<double> max = make::max(v);
-  std::vector<double> offset(max);
+  std::vector<double> offset(max.size(),0.);
 
   for (std::size_t i = 0; i < min.size(); i++)
-    offset[i] = (max[i] - min[i]) / 100.; //FIXME: Remove this constant
+    offset[i] = (max[i] - min[i]) / offset_ratio;
 
   for (size_t dim = 0; dim < offset.size(); dim++) // dim <=> j
   {
@@ -114,7 +114,7 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
 }
 
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline
 auto classification_tree<T,INDEX,C>::get_label(obs_t& v) -> label_t
 {
@@ -148,7 +148,7 @@ auto classification_tree<T,INDEX,C>::get_label(obs_t& v) -> label_t
 }
 
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline
 tree<T> *
 classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
@@ -227,7 +227,7 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
 }
 
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline auto
 classification_tree<T,INDEX,C>::operator()(const point_t& p)
 -> double
@@ -244,7 +244,7 @@ classification_tree<T,INDEX,C>::operator()(const point_t& p)
 }
 
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline auto
 classification_tree<T,INDEX,C>::all_equals( obs_t &v )
 -> bool
@@ -259,18 +259,18 @@ classification_tree<T,INDEX,C>::all_equals( obs_t &v )
 }
 
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline
 classification_tree<T,INDEX,C>::
 classification_tree(const classification_tree<T,INDEX,C>& rh)
-   :  tree_(0)
+  :  tree_(nullptr), offset_ratio(rh.offset_ratio)
 {
   if (rh.tree_ != 0)
     tree_ = new tree<point_t>(*rh.tree_);
 }
 
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline auto
 classification_tree<T,INDEX,C>::
 operator=(const classification_tree<T,INDEX,C>& rh)
@@ -285,7 +285,7 @@ operator=(const classification_tree<T,INDEX,C>& rh)
 }
 
 
-template < typename T, typename INDEX, template <class, class> class C>
+template < typename T, typename INDEX, template <class, class> class C >
 inline
 classification_tree<T,INDEX,C>::~classification_tree()
 {

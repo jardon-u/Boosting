@@ -17,8 +17,6 @@
 
 namespace classification
 {
-  //FIXME: C++11 signature style is not super readable... needed for get_label
-  //FIXME: maybe use classic style for prototype..
 
   ///
   /// \brief Classification tree
@@ -29,7 +27,8 @@ namespace classification
   ///
   template < typename T,
              typename INDEX,
-             template < class U, class V = std::allocator<U> > class C = std::deque >
+             template < class U, class V = std::allocator<U> >
+             class C = std::deque >
   struct classification_tree
   {
     typedef int    label_t;  ///< label type.
@@ -42,14 +41,18 @@ namespace classification
     const std::function<bool(point_t)> true_lambda;
 
     /// Ctor
-    classification_tree(unsigned d = 2, unsigned m = 3, unsigned n = 2)
-      : tree_(nullptr), depth_limit(d), max_node_size(m), nb_cat(n)
+    classification_tree(unsigned depth_limit   = 2,
+                        unsigned max_node_size = 3,
+                        unsigned nb_cat        = 2,
+                        double   offset_ratio  = 100.)
+      : tree_(nullptr), depth_limit(depth_limit), max_node_size(max_node_size),
+        nb_cat(nb_cat), offset_ratio(offset_ratio)
     {
       true_lambda = [](point_t)->bool { return true; };
     }
 
     /// Dtor
-    virtual ~classification_tree();
+    ~classification_tree();
 
     //// Member functions
 
@@ -76,20 +79,21 @@ namespace classification
     //// Internal
     classification_tree( const classification_tree& rh );
     classification_tree& operator=( const classification_tree& rh );
-
-    static auto name() -> const std::string
-    {
+    static const std::string name() {
       return std::string("Classification tree (") + INDEX::name() + ")";
     }
 
     // Check
-    auto all_equals( obs_t &v ) -> bool;
+    bool all_equals( obs_t &v );
 
-    tree<point_t> * tree_; ///< tree
+  private:
+    tree<point_t> * tree_; ///< underlying tree
 
-    unsigned depth_limit;
-    unsigned max_node_size;
-    unsigned nb_cat;
+    unsigned depth_limit;   ///< max depth of the tree
+    unsigned max_node_size; ///< max observation per node
+    unsigned nb_cat;        ///< number of classes
+
+    const double offset_ratio; //< determine offset when exploring dimension
   };
 
 #   include "classification_tree.hxx"
