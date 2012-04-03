@@ -13,7 +13,7 @@ VERSION=0.5
 
 TAR_FILE=$(PROJ)-$(VERSION).tar.bz2
 SRC=main.cc
-#HDR=adaboost.hh classification_tree.hh classification_tree.hxx tree.hh observation.hh misclass.hh
+#HDR=adaboost.hh classification_tree.hh tree.hh observation.hh misclass.hh
 OBJ=$(SRC:.cc=.o)
 VPATH=src
 LFLAGS=-Isrc
