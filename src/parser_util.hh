@@ -76,13 +76,13 @@ void eat_until(char ** s, const char * token)
 inline
 double eat_number(char ** s)
 {
-  //   char a[5];
-  //   int k = 0;
-  //   while ((*s != '\0' && **s >= '0' && **s <= '9') || (**s == '-') || (**s == '.'))
-  //     a[k++] = *(*s)++;
-  //   a[k] = 0;
-  //   double i = atoi(a);
-  //   std::cerr << i;
+  //char a[15];
+  // int k = 0;
+  // while ((*s != '\0' && **s >= '0' && **s <= '9') || (**s == '-') || (**s == '.'))
+  //   a[k++] = *(*s)++;
+  //a[k] = 0;
+  //double i = atoi(a);
+  //std::cerr << i;
   return strtof(*s,s);
 }
 

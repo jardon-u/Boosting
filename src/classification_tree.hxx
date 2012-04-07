@@ -54,6 +54,8 @@ classification_tree<T,INDEX,C>::fit(const std::vector<T>&   x,
                                     const std::vector<int>& y,
                                     std::vector<double>&    w)
 {
+  std::cerr << "fit" << std::endl;
+
   //Group data // FIXME: v should be the unique argument?
   obs_t v;
   for (std::size_t i = 0; i < x.size(); i++)
@@ -75,18 +77,22 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
                                               value_t&      s,
                                               const obs_t&  v)
 {
+  debug_print("%s","get splitting");
+
   double max_gain = std::numeric_limits<double>::max();
+
+  std::cout << " v " << v[0].x->size() << std::endl;
 
   std::vector<double> min = make::min(v);
   std::vector<double> max = make::max(v);
-  std::vector<double> offset(max.size(),0.);
+  std::vector<double> offset(max.size(), 0);
 
   for (std::size_t i = 0; i < min.size(); i++)
     offset[i] = (max[i] - min[i]) / offset_ratio;
 
   for (size_t dim = 0; dim < offset.size(); dim++) // dim <=> j
   {
-    //std::cout << offset[dim] << std::endl;
+    debug_print("%d\n",dim);
     // no variation on this dimension.
     if (offset[dim] < std::numeric_limits<double>::epsilon())
       continue;
@@ -159,20 +165,26 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
   size_t  j = 0;            // dimension to split
   value_t s = (*v[0].x)[0]; // splitting point
 
-  //std::cerr << "## "<<  v.size() << std::endl;
+  std::cerr << "#split v.size() "<<  v.size() << std::endl;
 
   // If all labels are equal do not split
   if (all_equals(v))
+  {
+    debug_print("%s", "all_equals");
     return new tree<point_t>( true_lambda, static_cast<double>(v[0].y) );
+  }
 
   label_t label = get_label(v);
 
   // If only few point_ts remaining do not split
   if (v.size() <= max_node_size || depth >= depth_limit)
+  {
+    debug_print("%d <= %d || %u >= %u", v.size(), max_node_size, depth, depth_limit);
     return new tree<point_t>( true_lambda, label);
+  }
 
   get_splitting(j, s, v);
-  //std::cout << "Splitting done." << std::endl;
+  std::cout << "Splitting done." << std::endl;
 
   // Construct point_t subsets
   tree<point_t> * t = new tree<point_t>([j,s](point_t x)->bool{ return x[j] <= s; });
@@ -263,7 +275,11 @@ template < typename T, typename INDEX, template <class, class> class C >
 inline
 classification_tree<T,INDEX,C>::
 classification_tree(const classification_tree<T,INDEX,C>& rh)
-  :  tree_(nullptr), offset_ratio(rh.offset_ratio)
+  :  tree_(nullptr),
+     depth_limit(rh.depth_limit),
+     max_node_size(rh.max_node_size),
+     nb_cat(rh.nb_cat),
+     offset_ratio(rh.offset_ratio)
 {
   if (rh.tree_ != 0)
     tree_ = new tree<point_t>(*rh.tree_);
@@ -276,6 +292,11 @@ classification_tree<T,INDEX,C>::
 operator=(const classification_tree<T,INDEX,C>& rh)
 -> classification_tree<T,INDEX,C>&
 {
+  depth_limit   = rh.depth_limit;
+  max_node_size = rh.max_node_size;
+  nb_cat        = rh.nb_cat;
+  offset_ratio  = rh.offset_ratio;
+
   if (this != &rh)
   {
     if (rh.tree_ != 0)

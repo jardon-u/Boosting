@@ -11,6 +11,8 @@
 # include <deque>
 # include <cassert>
 # include <cmath>
+
+# include "boosting.hh"
 # include "tree.hh"
 # include "observation.hh"
 
@@ -38,15 +40,18 @@ namespace classification
 
     typedef C< observation<const point_t*, label_t, weight_t> > obs_t;
 
-    const std::function<bool(point_t)> true_lambda;
+    std::function<bool(point_t)> true_lambda;
 
     /// Ctor
     classification_tree(unsigned depth_limit   = 2,
                         unsigned max_node_size = 3,
                         unsigned nb_cat        = 2,
-                        double   offset_ratio  = 100.)
-      : tree_(nullptr), depth_limit(depth_limit), max_node_size(max_node_size),
-        nb_cat(nb_cat), offset_ratio(offset_ratio)
+                        double   offset_ratio  = 10.)
+      : tree_(nullptr),
+        depth_limit(depth_limit),
+        max_node_size(max_node_size),
+        nb_cat(nb_cat),
+        offset_ratio(offset_ratio)
     {
       true_lambda = [](point_t)->bool { return true; };
     }

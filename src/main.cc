@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
 
   std::vector<feature_t> features;
   std::vector<int>       labels;
-  load_file(std::string("comBioData/Prostate1.data"),labels,features);
+  load_file(std::string("./comBioData/Prostate1.data"),labels,features);
 
   // learning/test  data
   std::vector<feature_t> lfeatures, tfeatures;

@@ -26,7 +26,7 @@ namespace classification
       if (N == 0)
         throw std::runtime_error("Learning error: No data");
       err_.resize(N);
-      g.reserve(nb_iter);
+      g.resize(nb_iter);
       alpha_ = std::vector<double>(M, 1);
     }
 

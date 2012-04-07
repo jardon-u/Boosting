@@ -56,8 +56,8 @@ void get_features(std::ifstream& is,
 
 template <typename L, typename F>
 void load_file(const std::string& fn,
-              L& labels,
-              F& features)
+               L& labels,
+               F& features)
 {
   std::ifstream is(fn.c_str());
   if (not is.is_open())

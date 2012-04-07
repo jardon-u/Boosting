@@ -24,10 +24,10 @@ FILES=src README
 all: $(BIN)
 
 $(BIN): $(OBJ) $(HDR)
-	$(CCXX) $(CFLAGS) $(patsubst %, obj/%,$(OBJ)) -o $(BIN) $(LFLAGS)
+	$(CCXX) $(CFLAGS) $(patsubst %, obj/%,$(OBJ)) -O3 -o $(BIN) $(LFLAGS)
 
 %.o : %.cc Makefile
-	$(CCXX) -c $(CFLAGS) $< -o obj/$@
+	$(CCXX) -c $(CFLAGS) -O3 $< -o obj/$@
 
 clean:
 	rm -f $(BIN)
