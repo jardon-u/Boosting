@@ -80,8 +80,8 @@ void load_file(const std::string& fn,
       features[j].push_back(transcripts[i][j]);
 
   //std::assert(labels.size() == features.size());
-  std::cout << "Loaded " << fn << " - labels:" << labels.size()
-            << " features:" << features.size() << std::endl;
+  std::cout << "Loaded " << fn << " - observations:" << features.size()
+            << " features:" << features[0].size() << std::endl;
 }
 
 
