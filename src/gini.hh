@@ -31,7 +31,7 @@ namespace classification
 
     /// Compute the index of one subset.
     template <typename S, typename F>
-    static double index(const S& v, const F& fun, unsigned nb_cat)
+    static double index2(const S& v, const F& fun, unsigned nb_cat)
     {
       //normalization factor
       float total_count = 0;

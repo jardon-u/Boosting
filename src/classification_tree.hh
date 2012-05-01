@@ -5,12 +5,14 @@
 # define slt_weak_classification_tree_h__
 
 # include <vector>
+# include <array>
 # include <iostream>
 # include <utility>
 # include <limits>
 # include <deque>
 # include <cassert>
 # include <cmath>
+# include <future>
 
 # include "boosting.hh"
 # include "tree.hh"
@@ -43,7 +45,7 @@ namespace classification
     std::function<bool(point_t)> true_lambda;
 
     /// Ctor
-    classification_tree(unsigned depth_limit   = 2,
+    classification_tree(unsigned depth_limit   = 3,
                         unsigned max_node_size = 3,
                         unsigned nb_cat        = 2,
                         double   offset_ratio  = 10.)
@@ -92,6 +94,8 @@ namespace classification
     bool all_equals( obs_t &v );
 
   private:
+    double variance(double sum, double sum2, int n);
+
     tree<point_t> * tree_; ///< underlying tree
 
     unsigned depth_limit;   ///< max depth of the tree

@@ -24,10 +24,10 @@ FILES=src README
 all: $(BIN)
 
 $(BIN): $(OBJ) $(HDR)
-	$(CCXX) $(CFLAGS) $(patsubst %, obj/%,$(OBJ)) -O3 -o $(BIN) $(LFLAGS)
+	$(CCXX) $(CFLAGS) $(patsubst %, obj/%,$(OBJ)) -g -o $(BIN) $(LFLAGS)
 
 %.o : %.cc Makefile
-	$(CCXX) -c $(CFLAGS) -O3 $< -o obj/$@
+	$(CCXX) -c $(CFLAGS) -g $< -o obj/$@
 
 clean:
 	rm -f $(BIN)
@@ -75,7 +75,7 @@ fixme:
 	                           --exclude-dir=".git" > FIXME
 
 .deps:
-	g++ -MM $(SRC:%=src/%) > .deps
+	g++ -MM $(CFLAGS) $(SRC:%=src/%) > .deps
 
 .PHONY: doc check .deps gui
 

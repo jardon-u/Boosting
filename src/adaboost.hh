@@ -38,7 +38,7 @@ namespace classification
         g[m].fit(x,y,w);
 
         err_[m] = error(m,w);
-        std::cerr << "Iter " << m << ": " << err_[m] << std::endl;
+        std::cerr << "adaboost: iter " << m << ": training error: " << err_[m] << std::endl;
         if (err_[m] == 0 || err_[m] >= 0.5)
         {
           M = m+1;
