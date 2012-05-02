@@ -43,7 +43,7 @@ namespace make
     return min;
   }
 
-  // Of course as fast as calling min then max with -O3
+  //FIXME: make generic and pull out
   template <typename C>
   inline
   std::pair<std::vector<double>, std::vector<double>>
@@ -86,7 +86,7 @@ classification_tree<T,INDEX,C>::fit(const std::vector<T>&   x,
   }
 
   // Create tree
-  std::cout << "classification_tree: Fitting " << v.size() << " observations" << std::endl;
+  std::cout << "ct: Fitting " << v.size() << " observations" << std::endl;
   tree_ = split(v);
 }
 
@@ -105,28 +105,18 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
                                               value_t&      s,
                                               const obs_t&  v)
 {
-  //debug_print("%s\n","get splitting");
-
   double max_gain = std::numeric_limits<double>::max();
 
-  //std::cout << " v " << v[0].x->size() << std::endl;
-  //std::cout << "Compute Min/Max/Offsets:" << std::endl;
-
-  //auto future_min = std::async(make::min<obs_t>, v);
   auto minmax = make::min_max(v);
   std::vector<double>& min = minmax.first;
   std::vector<double>& max = minmax.second;
   std::vector<double> offsets(max.size(), 0);
 
-  //const std::vector<double>& min = future_min.get();
-
   for (std::size_t i = 0; i < min.size(); i++)
     offsets[i] = (max[i] - min[i]) / v.size(); // offset_ratio;
 
-  //debug_print("%s\n","Start splitting:");
-  for (size_t dim = 0; dim < (*v[0].x).size(); dim++) // dim <=> j
+  for (std::size_t dim = 0; dim < (*v[0].x).size(); dim++) // dim <=> j
   {
-    //debug_print("%d(min:%f|max:%f),",dim, min[dim], max[dim]);
     //std::cout << "dim " << dim <<
     //  " min: " << min[dim] << " max: " << max[dim] << " " << v.size() << std::endl;
 
@@ -134,14 +124,14 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
     if (offsets[dim] < std::numeric_limits<double>::epsilon())
       continue;
 
-    std::size_t nb_slices = 100; //v.size(); // weak heuristic
+    std::size_t nb_slices = 100; // v.size(); // weak heuristic
     std::vector< std::array<double,3> > slice(nb_slices, std::array<double,3>{{0,0,0}});
     double total_sum  = 0;
     double total_sum2 = 0;
 
     /// This piece of code basically sorts observations on dimension /dim/ with
     /// a bucket sort.
-    for (size_t i = 0; i < v.size(); i++)
+    for (std::size_t i = 0; i < v.size(); i++)
     {
       const label_t& y = v[i].y;
 
@@ -161,7 +151,7 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
         // bucket label position
         std::cout << bucket << " " << y << " " << (*v[i].x)[dim] << std::endl;
       }
-    }
+    } // end for each observations
 
     /// Here we iterate on dimension /dim/ from min to max. Each slice contains
     /// the sum and sum2 of labels for this slice as well as the number of
@@ -170,8 +160,8 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
     /// threshold).
     double left_sum  = 0;
     double left_sum2 = 0;
-    int    nb_left = 0;
-    for (std::size_t i = 0; i < slice.size()-1; i++)
+    int    nb_left   = 0;
+    for (std::size_t i = 0; i < slice.size() - 1; i++)
     {
       left_sum  += slice[i][0];
       left_sum2 += slice[i][1];
@@ -199,34 +189,57 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
           std::cout << "-----------------" << std::endl;
           std::cout << "i  " << i << std::endl;
           std::cout << "s  " << s << std::endl;
-          std::cout << "left_sum  " << left_sum << std::endl;
+          std::cout << "left_sum  " << left_sum  << std::endl;
           std::cout << "left_sum2 " << left_sum2 << std::endl;
           std::cout << vleft << " vleft|vright " << vright << std::endl;
           std::cout << "dim " << dim << " gain: " << max_gain << " -> " << gain << std::endl;
           std::cout << "-----------------" << std::endl;
         }
       }
-    }
+    } // end for each slices
+  } // end for each dims
 
-  }
-  std::cerr << "classification_tree: Split on (dim,value): (" <<
-    j << "," << s << ")" << std::endl;
+  std::cerr << "ct: Split (dim,value): (" << j << "," << s << ")" << std::endl;
 }
 
 
 template < typename T, typename INDEX, template <class, class> class C >
 inline
-auto classification_tree<T,INDEX,C>::get_label(obs_t& v) -> label_t
+auto classification_tree<T,INDEX,C>::get_maj_label(obs_t& v) -> label_t
 {
   assert(v.size() != 0 && "Get label failed");
 
+  //FIXME: Pull this code out
+
+  std::size_t count = 0;
+  std::size_t maj_index;
+
+  for (std::size_t i = 0; i < v.size(); i++) {
+    if (count == 0) {
+      maj_index = i;
+    }
+    if (v[i].y == v[maj_index].y)
+      count++;
+    else
+      count--;
+  }
+  count = 0;
+  for (std::size_t i = 0; i < v.size(); i++) {
+    if (v[i].y == v[maj_index].y) {
+      count++;
+    }
+  }
+  if (count > v.size() / 2)
+    return v[maj_index].y;
+  else
+    return 0; //FIXME: other strategy when no majority
+
   // Only valid for the two classes (1,-1) problem
-  double s = 0;
+  //double s = 0;
+  //for (auto e : v)
+  //  s += e.y;
 
-  for (auto e : v)
-    s += e.y;
-
-  return s / v.size();
+  //return s / v.size();
 
 //   unsigned count[nb_cat];
 
@@ -253,50 +266,35 @@ inline
 tree<T> *
 classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
 {
+  //std::cerr << "ct: split vector size "<< v.size() << std::endl;
   if (v.size() == 0)
     return 0;
 
-  size_t  j = 0;            // dimension to split
-  value_t s = (*v[0].x)[0]; // splitting point
+  if (all_labels_equals(v))
+    return new tree<point_t>( true_lambda, v[0].y );
 
-  //std::cerr << "classification_tree: Splitting a vector of size "<< v.size() << std::endl;
-
-  // If all labels are equal do not split
-  if (all_equals(v))
-  {
-    //debug_print("%s", "classification_tree: all_equals\n");
-    return new tree<point_t>( true_lambda, static_cast<double>(v[0].y) );
-  }
-
-  label_t label = get_label(v);
-
-  // If only few point_ts remaining do not split
+  label_t majority_label = get_maj_label(v);
   if (v.size() <= max_node_size || depth >= depth_limit)
-  {
-    //debug_print("%d <= %d || %u >= %u", v.size(), max_node_size, depth, depth_limit);
-    return new tree<point_t>( true_lambda, label);
-  }
+    return new tree<point_t>( true_lambda, majority_label );
 
+  size_t  j; // dimension to split
+  value_t s; // splitting point
   get_splitting(j, s, v);
-  //std::cout << "Splitting done." << std::endl;
 
-  // Construct point_t subsets
-  tree<point_t> * t = new tree<point_t>([j,s](point_t x)->bool{ return x[j] <= s; });
+  auto splitting_lambda = [j,s](point_t x)->bool{ return x[j] <= s; };
+  tree<point_t> * node = new tree<point_t>(splitting_lambda);
 
-  obs_t v1, v2; // Comment: the use of these vectors IS an optimization.
-
-  //std::cerr << "Start sub vector allocation: {";
+  // Split v (copy to new vectors IS an optimization)
+  obs_t v1, v2;
   for (auto e : v)
   {
-    if ((t->f)(*e.x))
+    if (node->f(*e.x))
       v1.push_back(e);
     else
       v2.push_back(e);
   }
-  //std::cerr << "}" << std::endl;
 
-  //std::cerr << "classification_tree: split => [" <<
-  //  v1.size() << " elts|" << v2.size() << " elts]" << std::endl;
+  //std::cerr << "ct: split => [" << v1.size() << "|" << v2.size() << std::endl;
 
   // One of the Branch is empty. 2 classes exist.
   // Node may be under the min size but labels was == 0.
@@ -306,31 +304,29 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
 
     //std::cerr << "(" << j << "," << s << ")" << std::endl;
 
-    if (label == 0)
+    if (majority_label == 0)
     {
       std::cerr << "(" << v1.size() << " ; " << v2.size() << ")" << std::endl;
-      std::cerr << "-- " << label <<  " vsize " << v.size() << std::endl;
+      std::cerr << "-- " << majority_label <<  " vsize " << v.size() << std::endl;
       //for(unsigned i = 0; i < v.size(); i++)
       //  std::cerr << v[i].y  << " " << (*v[i].x)  << std::endl;
       std::cerr << "---------" << std::endl;
       // WARNING: We are not able to split. Node is randomly classified.
-      label = static_cast<double>(v[0].y);
+      majority_label = v[0].y;
     }
     else // no ? (ie. labels are different and splitting didn't split anything)
       throw std::runtime_error("Unexpected: label!=0, splitting failed");
 
-    return new tree<point_t>( true_lambda,
-                              label);
+    return new tree<point_t>( true_lambda, majority_label );
   }
 
   v.clear(); // keep memory usage +/- constant
 
   // Recursively launch sub-splitting
-  t->ttrue  = split(v1, depth+1);
-  t->tfalse = split(v2, depth+1);
+  node->ttrue  = split(v1, depth+1);
+  node->tfalse = split(v2, depth+1);
 
-  // Return split node
-  return t;
+  return node;
 }
 
 
@@ -353,7 +349,7 @@ classification_tree<T,INDEX,C>::operator()(const point_t& p)
 
 template < typename T, typename INDEX, template <class, class> class C >
 inline auto
-classification_tree<T,INDEX,C>::all_equals( obs_t &v )
+classification_tree<T,INDEX,C>::all_labels_equals( obs_t &v )
 -> bool
 {
   label_t first = v[0].y;

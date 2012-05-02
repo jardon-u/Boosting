@@ -1,14 +1,15 @@
 // Computational Biology
 // Analysis of Gene Microarray Data
 
-#include <cstdlib>
 #include <iostream>
+#include <random>
+
 #include "parser.hh"
 #include "classification_tree.hh"
 #include "adaboost.hh"
 #include "gini.hh"
 #include "misclass.hh"
-#include <random>
+
 
 
 bool usage(int argc, char ** argv)

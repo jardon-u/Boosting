@@ -78,7 +78,7 @@ namespace classification
     void get_splitting( size_t& j, value_t& s, const obs_t& v );
 
     /// Get majority label in vector v
-    label_t get_label( obs_t& v );
+    label_t get_maj_label( obs_t& v );
 
     /// Apply classifier. return a label
     double operator()( const point_t& p );
@@ -91,7 +91,7 @@ namespace classification
     }
 
     // Check
-    bool all_equals( obs_t &v );
+    bool all_labels_equals( obs_t &v );
 
   private:
     double variance(double sum, double sum2, int n);
