@@ -30,6 +30,13 @@ namespace classification
       alpha_ = std::vector<double>(M, 1);
     }
 
+    double indicator(double i, double j)
+    {
+      if (i != j)
+        return 1;
+      return 0;
+    }
+
     void boost()
     {
       std::vector<double> w(N,1./N);
@@ -50,8 +57,10 @@ namespace classification
         float sum = 0;
         for (size_t i = 0; i < N; i++)
         {
-          w[i] = w[i] * std::exp(-1 * alpha_[m] *
-                                 static_cast<int>(y[i] != g[m](x[i])));
+          double coef = std::exp(-1 * alpha_[m] * indicator(y[i], g[m](x[i])));
+          //if (coef > 1)
+          //  std::cout << coef << std::endl;
+          w[i] = w[i] * coef;
           sum += w[i];
         }
         for (size_t i = 0; i < N; i++)

@@ -81,6 +81,20 @@ void fill_data(T& features,  U& labels,
   }
 }
 
+template < typename F, typename L, typename G>
+void
+print_accuracy(std::string msg, F& tfeatures, L& tlabels, G& g)
+{
+  float accuracy = 0;
+  for (unsigned i = 0; i < tfeatures.size(); i++)
+  {
+    //std::cout << g(tfeatures[i]) << " | " << tlabels[i] << std::endl;
+    accuracy += static_cast<int>(g(tfeatures[i]) == tlabels[i]);
+  }
+  std::cout << msg << accuracy / tfeatures.size() <<
+    " = " << accuracy << "/" << tfeatures.size() << std::endl;
+}
+
 int main(int argc, char ** argv)
 {
   if (usage(argc, argv))
@@ -110,12 +124,6 @@ int main(int argc, char ** argv)
   booster_t g(lfeatures, llabels, 10);
   g.boost();
 
-  float accuracy = 0;
-  for (unsigned i = 0; i < tfeatures.size(); i++)
-  {
-    //std::cout << g(tfeatures[i]) << " | " << tlabels[i] << std::endl;
-    accuracy += static_cast<int>(g(tfeatures[i]) == tlabels[i]);
-  }
-  std::cout << "accuracy: " << accuracy / tfeatures.size() <<
-    " = " << accuracy << "/" << tfeatures.size() << std::endl;
+  print_accuracy("learning set accuracy: ", lfeatures, llabels, g);
+  print_accuracy("testing set accuracy: ", tfeatures, tlabels, g);
 }

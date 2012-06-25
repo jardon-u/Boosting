@@ -17,6 +17,7 @@
 # include "boosting.hh"
 # include "tree.hh"
 # include "observation.hh"
+# include "math.hh"
 
 
 namespace classification
@@ -48,12 +49,12 @@ namespace classification
     classification_tree(unsigned depth_limit   = 3,
                         unsigned max_node_size = 3,
                         unsigned nb_cat        = 2,
-                        double   offset_ratio  = 10.)
+                        unsigned nb_slices     = 1000.)
       : tree_(nullptr),
         depth_limit(depth_limit),
         max_node_size(max_node_size),
         nb_cat(nb_cat),
-        offset_ratio(offset_ratio)
+        nb_slices(nb_slices)
     {
       true_lambda = [](point_t)->bool { return true; };
     }
@@ -77,9 +78,6 @@ namespace classification
     /// Get splitting dimension j and threshold s
     void get_splitting( size_t& j, value_t& s, const obs_t& v );
 
-    /// Get majority label in vector v
-    label_t get_maj_label( obs_t& v );
-
     /// Apply classifier. return a label
     double operator()( const point_t& p );
 
@@ -102,7 +100,7 @@ namespace classification
     unsigned max_node_size; ///< max observation per node
     unsigned nb_cat;        ///< number of classes
 
-    const double offset_ratio; //< determine offset when exploring dimension
+    const unsigned nb_slices; //< determine nb slices when exploring dimension
   };
 
 #   include "classification_tree.hxx"

@@ -5,67 +5,8 @@
 
 namespace make
 {
-  template <typename Container>
-  inline
-  std::vector<double>
-  max(const Container& v)
-  {
-    std::vector<double> max(*v[0].x);
-
-    for (std::size_t i = 0; i < v.size(); i++)
-    {
-      for (std::size_t j = 0; j < max.size(); j++)
-      {
-        if ((*v[i].x)[j] > max[j])
-          max[j] = (*v[i].x)[j];
-      }
-    }
-
-    return max;
-  }
-
-  template <typename C>
-  inline
-  std::vector<double>
-  min(const C& v)
-  {
-    std::vector<double> min(*v[0].x);
-
-    for (std::size_t i = 0; i < v.size(); i++)
-    {
-      for (std::size_t j = 0; j < min.size(); j++)
-      {
-        if ((*v[i].x)[j] < min[j])
-          min[j] = (*v[i].x)[j];
-      }
-    }
-
-    return min;
-  }
 
   //FIXME: make generic and pull out
-  template <typename C>
-  inline
-  std::pair<std::vector<double>, std::vector<double>>
-  min_max(const C& v)
-  {
-    std::vector<double> min(*v[0].x);
-    std::vector<double> max(*v[0].x);
-
-    for (std::size_t i = 0; i < v.size(); i++)
-    {
-      for (std::size_t j = 0; j < min.size(); j++)
-      {
-        const std::vector<double>& e = *v[i].x;
-        if ( e[j] < min[j] )
-          min[j] = e[j];
-        if ( e[j] > max[j] )
-          max[j] = e[j];
-      }
-    }
-
-    return std::make_pair(min, max);
-  }
 
 }
 
@@ -107,13 +48,14 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
 {
   double max_gain = std::numeric_limits<double>::max();
 
-  auto minmax = make::min_max(v);
-  std::vector<double>& min = minmax.first;
-  std::vector<double>& max = minmax.second;
-  std::vector<double> offsets(max.size(), 0);
+  auto minmax = classification::math::min_max(v);
+  const std::vector<double>& min = minmax.first;
+  const std::vector<double>& max = minmax.second;
+  //std::vector<double> offsets(max.size(), 0);
 
-  for (std::size_t i = 0; i < min.size(); i++)
-    offsets[i] = (max[i] - min[i]) / v.size(); // offset_ratio;
+  //for (std::size_t i = 0; i < min.size(); i++)
+  //  offsets[i] = (max[i] - min[i]) / v.size();
+    //offsets[i] = (max[i] - min[i]) / offset_ratio;
 
   for (std::size_t dim = 0; dim < (*v[0].x).size(); dim++) // dim <=> j
   {
@@ -121,10 +63,9 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
     //  " min: " << min[dim] << " max: " << max[dim] << " " << v.size() << std::endl;
 
     // no variation on this dimension.
-    if (offsets[dim] < std::numeric_limits<double>::epsilon())
-      continue;
+    //if (offsets[dim] < std::numeric_limits<double>::epsilon())
+    //  continue;
 
-    std::size_t nb_slices = 100; // v.size(); // weak heuristic
     std::vector< std::array<double,3> > slice(nb_slices, std::array<double,3>{{0,0,0}});
     double total_sum  = 0;
     double total_sum2 = 0;
@@ -133,7 +74,7 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
     /// a bucket sort.
     for (std::size_t i = 0; i < v.size(); i++)
     {
-      const label_t& y = v[i].y;
+      const double& y = v[i].y * v[i].w;
 
       //FIXME: always the same for any dimension
       total_sum  += y;
@@ -205,64 +146,6 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
 
 template < typename T, typename INDEX, template <class, class> class C >
 inline
-auto classification_tree<T,INDEX,C>::get_maj_label(obs_t& v) -> label_t
-{
-  assert(v.size() != 0 && "Get label failed");
-
-  //FIXME: Pull this code out
-
-  std::size_t count = 0;
-  std::size_t maj_index;
-
-  for (std::size_t i = 0; i < v.size(); i++) {
-    if (count == 0) {
-      maj_index = i;
-    }
-    if (v[i].y == v[maj_index].y)
-      count++;
-    else
-      count--;
-  }
-  count = 0;
-  for (std::size_t i = 0; i < v.size(); i++) {
-    if (v[i].y == v[maj_index].y) {
-      count++;
-    }
-  }
-  if (count > v.size() / 2)
-    return v[maj_index].y;
-  else
-    return 0; //FIXME: other strategy when no majority
-
-  // Only valid for the two classes (1,-1) problem
-  //double s = 0;
-  //for (auto e : v)
-  //  s += e.y;
-
-  //return s / v.size();
-
-//   unsigned count[nb_cat];
-
-//   for (unsigned i = 0; i < v.size(); i++)
-//     count[v[i].y]++;
-
-//   unsigned imax = 0;
-//   unsigned  max = 0;
-//   for (unsigned c = 0; c < nb_cat; c++)
-//   {
-//     if (count[c] > max)
-//     {
-//       imax = c;
-//       max = count[c];
-//     }
-//   }
-
-//   return imax;
-}
-
-
-template < typename T, typename INDEX, template <class, class> class C >
-inline
 tree<T> *
 classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
 {
@@ -273,7 +156,7 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
   if (all_labels_equals(v))
     return new tree<point_t>( true_lambda, v[0].y );
 
-  label_t majority_label = get_maj_label(v);
+  label_t majority_label = math::majority_label(v);
   if (v.size() <= max_node_size || depth >= depth_limit)
     return new tree<point_t>( true_lambda, majority_label );
 
@@ -370,7 +253,7 @@ classification_tree(const classification_tree<T,INDEX,C>& rh)
      depth_limit(rh.depth_limit),
      max_node_size(rh.max_node_size),
      nb_cat(rh.nb_cat),
-     offset_ratio(rh.offset_ratio)
+     nb_slices(rh.nb_slices)
 {
   if (rh.tree_ != 0)
     tree_ = new tree<point_t>(*rh.tree_);
@@ -386,7 +269,7 @@ operator=(const classification_tree<T,INDEX,C>& rh)
   depth_limit   = rh.depth_limit;
   max_node_size = rh.max_node_size;
   nb_cat        = rh.nb_cat;
-  offset_ratio  = rh.offset_ratio;
+  nb_slices     = rh.nb_slices;
 
   if (this != &rh)
   {

@@ -7,15 +7,19 @@
 namespace classification
 {
 
-  template < typename X, typename Y, typename Z >
+  template < typename X, typename Y, typename W >
   struct observation
   {
-    observation(X x_, Y y_, Z w_)
+    typedef X point_t;
+    typedef Y label_t;
+    typedef W weight_t;
+
+    observation(X x_, Y y_, W w_)
       : x(x_), y(y_), w(w_)
     {}
     const X x;
     const Y y;
-    const Z w;
+    const W w;
   };
 
 }
