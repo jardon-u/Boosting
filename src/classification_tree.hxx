@@ -47,12 +47,11 @@ get_bucket(const M&                                 minmax,
       "(" << minmax.second[dim] << "-" << minmax.first[dim] << ")" <<
       " * (" << slice.size() << "- 1)" << std::endl;
   }
-  int bucket = 0;
-  if (minmax.first[dim] != minmax.second[dim])
-  {
-    bucket = ((*vi.x)[dim] - minmax.first[dim]) /
-      (double)((minmax.second[dim] - minmax.first[dim])) * (slice.size() - 1);
-  }
+
+  // assume minmax.first[dim] != minmax.second[dim]
+  int bucket = ((*vi.x)[dim] - minmax.first[dim]) /
+    (double)((minmax.second[dim] - minmax.first[dim])) * (slice.size() - 1);
+
   return bucket;
 }
 
@@ -75,6 +74,16 @@ classification_tree<T,INDEX,C>::get_splitting(std::size_t&  j,
   //  offsets[i] = (max[i] - min[i]) / v.size();
     //offsets[i] = (max[i] - min[i]) / offset_ratio;
 
+  // Compute total label sum and sum2 for all the observation in v
+  double total_sum  = 0;
+  double total_sum2 = 0;
+  for (auto vi : v)
+  {
+    auto y  = vi.y * vi.w;
+    total_sum  += y;
+    total_sum2 += y * y;
+  }
+
   for (std::size_t dim = 0; dim < (*v[0].x).size(); dim++) // dim <=> j
   {
     //std::cout << "dim " << dim <<
@@ -83,23 +92,18 @@ classification_tree<T,INDEX,C>::get_splitting(std::size_t&  j,
     // no variation on this dimension.
     //if (offsets[dim] < std::numeric_limits<double>::epsilon())
     //  continue;
+    if (min[dim] == max[dim])
+      continue;
 
     std::vector< std::array<double,3> > slice(nb_slices, std::array<double,3>{{0,0,0}});
-    double total_sum  = 0;
-    double total_sum2 = 0;
 
     /// This piece of code basically sorts observations on dimension /dim/ with
     /// a bucket sort.
     for (auto vi : v)
     {
-      const double& y = vi.y * vi.w;
-
-      //FIXME: always the same for any dimension (not necessary to compute again)
-      total_sum  += y;
-      total_sum2 += y * y;
+      auto y  = vi.y * vi.w;
 
       int bucket = get_bucket(minmax, dim, slice, vi);
-
       slice[bucket][0] += y;
       slice[bucket][1] += y * y;
       slice[bucket][2] += 1;
