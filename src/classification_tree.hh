@@ -81,6 +81,13 @@ namespace classification
     /// Apply classifier. return a label
     double operator()( const point_t& p );
 
+    /// Get the current bucket for an observation
+    template < typename M >
+    double get_bucket(const M&                                 minmax,
+                      const std::size_t&                       dim,
+                      const std::vector<std::array<double,3>>& slice,
+                      const typename obs_t::value_type&        vi);
+
     //// Internal
     classification_tree( const classification_tree& rh );
     classification_tree& operator=( const classification_tree& rh );

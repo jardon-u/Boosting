@@ -3,13 +3,6 @@
 
 /// Implementation -
 
-namespace make
-{
-
-  //FIXME: make generic and pull out
-
-}
-
 template < typename T, typename INDEX, template <class, class> class C >
 inline
 void
@@ -40,9 +33,34 @@ double classification_tree<T,INDEX,C>::variance(double sum, double sum2, int n)
 }
 
 template < typename T, typename INDEX, template <class, class> class C >
+template < typename M >
+inline
+double classification_tree<T,INDEX,C>::
+get_bucket(const M&                                 minmax,
+           const std::size_t&                       dim,
+           const std::vector<std::array<double,3>>& slice,
+           const typename obs_t::value_type&        vi)
+{
+  if (0)
+  {
+    std::cout << "(" << (*vi.x)[dim] << "-" << minmax.first[dim] << ") / " <<
+      "(" << minmax.second[dim] << "-" << minmax.first[dim] << ")" <<
+      " * (" << slice.size() << "- 1)" << std::endl;
+  }
+  int bucket = 0;
+  if (minmax.first[dim] != minmax.second[dim])
+  {
+    bucket = ((*vi.x)[dim] - minmax.first[dim]) /
+      (double)((minmax.second[dim] - minmax.first[dim])) * (slice.size() - 1);
+  }
+  return bucket;
+}
+
+
+template < typename T, typename INDEX, template <class, class> class C >
 inline
 void
-classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
+classification_tree<T,INDEX,C>::get_splitting(std::size_t&  j,
                                               value_t&      s,
                                               const obs_t&  v)
 {
@@ -72,16 +90,15 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
 
     /// This piece of code basically sorts observations on dimension /dim/ with
     /// a bucket sort.
-    for (std::size_t i = 0; i < v.size(); i++)
+    for (auto vi : v)
     {
-      const double& y = v[i].y * v[i].w;
+      const double& y = vi.y * vi.w;
 
-      //FIXME: always the same for any dimension
+      //FIXME: always the same for any dimension (not necessary to compute again)
       total_sum  += y;
       total_sum2 += y * y;
 
-      int bucket = ((*v[i].x)[dim] - min[dim]) /
-        (double)((max[dim] - min[dim])) * (slice.size() - 1);
+      int bucket = get_bucket(minmax, dim, slice, vi);
 
       slice[bucket][0] += y;
       slice[bucket][1] += y * y;
@@ -90,7 +107,7 @@ classification_tree<T,INDEX,C>::get_splitting(unsigned&     j,
       if (0)
       {
         // bucket label position
-        std::cout << bucket << " " << y << " " << (*v[i].x)[dim] << std::endl;
+        std::cout << bucket << " " << y << " " << (*vi.x)[dim] << std::endl;
       }
     } // end for each observations
 

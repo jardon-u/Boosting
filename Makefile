@@ -5,7 +5,7 @@
 ## Keywords: Boosting
 ## X-URL:
 
--include Makefile.rules
+include Makefile.rules
 
 PROJ=boosting
 BIN=test

@@ -4,6 +4,8 @@ if [ -f Makefile.rules ]; then
     rm Makefile.rules
 fi
 
+echo "g++:" `which g++`
+
 echo "CCXX=`which g++`" >> Makefile.rules
 
 mkdir obj 2> /dev/null
