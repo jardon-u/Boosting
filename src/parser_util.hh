@@ -83,7 +83,8 @@ double eat_number(char ** s)
   //a[k] = 0;
   //double i = atoi(a);
   //std::cerr << i;
-  return strtof(*s,s);
+  char ** endptr = (char **) s;
+  return strtof(*s,endptr);
 }
 
 

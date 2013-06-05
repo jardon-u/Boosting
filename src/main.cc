@@ -106,11 +106,13 @@ int main(int argc, char ** argv)
   typedef classification_tree<feature_t, misclass> classifier_t;
   typedef adaboost<classifier_t> booster_t;
 
+  std::cout << "load_file" << std::endl;
   std::vector<feature_t> features;
   std::vector<int>       labels;
   load_file(std::string(argv[1]),labels,features);
 
-  // learning/test  data
+  std::cout << "learning/test data" << std::endl;
+  // learning/test data
   std::vector<feature_t> lfeatures, tfeatures;
   std::vector<int>       llabels, tlabels;
 
@@ -121,6 +123,7 @@ int main(int argc, char ** argv)
   std::cout << "learning set: " << lfeatures.size() << std::endl;
   std::cout << "test     set: " << tfeatures.size() << std::endl;
 
+  std::cout << "Boost" << std::endl;
   booster_t g(lfeatures, llabels, 10);
   g.boost();
 

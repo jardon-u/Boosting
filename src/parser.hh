@@ -33,11 +33,9 @@ template <typename F>
 void get_features(std::ifstream& is,
                   F& features)
 {
-  while (!is.eof())
+  char line[1024] = {0};
+  while (is.getline(line, 1024))
   {
-    char line[1024] = {0};
-    is.getline(line, 1024);
-
     char  * s = line;
     char ** ss = &s;
 
@@ -51,6 +49,8 @@ void get_features(std::ifstream& is,
     if (feature.size() != 0)
       features.push_back(feature);
   }
+  if ( (is.rdstate() & std::ifstream::failbit ) != 0 )
+    std::cerr << "[ERR] Unknown error parsing features\n";
 }
 
 
@@ -67,13 +67,16 @@ void load_file(const std::string& fn,
   }
 
   // get labels for patients (Tumoral, Normal)
+  std::cout << "get_labels" << std::endl;
   get_labels(is, labels);
 
   // get transcripts for every genes
+  std::cout << "get_features" << std::endl;
   std::vector< std::vector<double> > transcripts;
   get_features(is, transcripts);
 
   // convert to feature vectors for each patient
+  std::cout << "convert features" << std::endl;
   features.resize(labels.size());
   for (unsigned j = 0; j < features.size(); j++)
     for (unsigned i = 0; i < transcripts.size(); i++)

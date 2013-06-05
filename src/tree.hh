@@ -84,10 +84,7 @@ namespace classification
 
     while (t != nullptr && (t->ttrue != nullptr || t->tfalse != nullptr))
     {
-      if ((t->f)(p))
-        t = t->ttrue;
-      else
-        t = t->tfalse;
+      t = ((t->f)(p)) ? t->ttrue : t->tfalse;
     }
     if (t == nullptr)
       throw std::runtime_error("get_region failed");
