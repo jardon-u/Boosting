@@ -71,7 +71,7 @@ commit:
 fixme:
 	-rm -f FIXME
 	-grep "FIXME" -r . --line-number \
-        --exclude="Makefile" --exclude-dir=".svn" \
+        --exclude="Makefile" --exclude="FIXME" --exclude-dir=".svn" \
 	                           --exclude-dir=".git" > FIXME
 
 .deps:

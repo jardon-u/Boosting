@@ -77,7 +77,7 @@ classification_tree<T,INDEX,C>::get_splitting(std::size_t&  j,
   // Compute total label sum and sum2 for all the observation in v
   double total_sum  = 0;
   double total_sum2 = 0;
-  for (auto vi : v)
+  for (auto& vi : v)
   {
     auto y  = vi.y * vi.w;
     total_sum  += y;
@@ -99,7 +99,7 @@ classification_tree<T,INDEX,C>::get_splitting(std::size_t&  j,
 
     /// This piece of code basically sorts observations on dimension /dim/ with
     /// a bucket sort.
-    for (auto vi : v)
+    for (auto& vi : v)
     {
       auto y  = vi.y * vi.w;
 
@@ -167,7 +167,7 @@ classification_tree<T,INDEX,C>::get_splitting(std::size_t&  j,
 
 template < typename T, typename INDEX, template <class, class> class C >
 inline
-tree<T> *
+std::shared_ptr<tree<T>>
 classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
 {
   //std::cerr << "ct: split vector size "<< v.size() << std::endl;
@@ -175,11 +175,11 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
     return 0;
 
   if (all_labels_equals(v))
-    return new tree<point_t>( true_lambda, v[0].y );
+    return std::make_shared< tree<point_t> >(true_lambda, v[0].y );
 
   label_t majority_label = math::majority_label(v);
   if (v.size() <= max_node_size || depth >= depth_limit)
-    return new tree<point_t>( true_lambda, majority_label );
+    return std::shared_ptr<tree<point_t>>(new tree<point_t>( true_lambda, majority_label ));
 
   size_t  j; // dimension to split
   value_t s; // splitting point
@@ -190,7 +190,7 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
 
   // Split v (copy to new vectors IS an optimization)
   obs_t v1, v2;
-  for (auto e : v)
+  for (auto& e : v)
   {
     if (node->f(*e.x))
       v1.push_back(e);
@@ -221,7 +221,7 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
     else // no ? (ie. labels are different and splitting didn't split anything)
       throw std::runtime_error("Unexpected: label!=0, splitting failed");
 
-    return new tree<point_t>( true_lambda, majority_label );
+    return std::make_shared< tree<point_t> >( true_lambda, majority_label );
   }
 
   v.clear(); // keep memory usage +/- constant
@@ -230,7 +230,7 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
   node->ttrue  = split(v1, depth+1);
   node->tfalse = split(v2, depth+1);
 
-  return node;
+  return std::make_shared< tree<point_t> >(node);
 }
 
 
@@ -240,7 +240,7 @@ classification_tree<T,INDEX,C>::operator()(const point_t& p)
 -> double
 {
   assert(tree_ != 0 && "Classification failure");
-  tree<point_t> * region = tree_->get_region(p);
+  std::shared_ptr< tree<point_t> > region = tree_->get_region(p);
 
   //if (region->label == 0)
   //  throw std::runtime_error("0 Classified");
@@ -277,7 +277,7 @@ classification_tree(const classification_tree<T,INDEX,C>& rh)
      nb_slices(rh.nb_slices)
 {
   if (rh.tree_ != 0)
-    tree_ = new tree<point_t>(*rh.tree_);
+    tree_ = rh.tree_;
 }
 
 
@@ -305,5 +305,5 @@ template < typename T, typename INDEX, template <class, class> class C >
 inline
 classification_tree<T,INDEX,C>::~classification_tree()
 {
-  delete tree_;
+  //delete tree_;
 }

@@ -19,7 +19,7 @@ namespace classification
   /// Node are labeled with functions
   /// \p type of value
   template <typename T>
-  class tree
+  class tree : public std::enable_shared_from_this<tree<T>>
   {
   public:
     /// Copy Ctor
@@ -35,7 +35,7 @@ namespace classification
     tree(const std::function<bool(T)> fun);
 
     /// return pointer deepest node holding \p p.
-    tree * get_region(const T& p);
+    std::shared_ptr<tree> get_region(const T& p);
 
     /// Assignment operator performing deep copy.
     tree& operator=(const tree& t);
@@ -44,8 +44,8 @@ namespace classification
     ~tree();
 
     const std::function<bool(T)> f; ///< Splitting function.
-    tree * ttrue;     ///< Map the subset f(p).
-    tree * tfalse;    ///< Map the subset !f(p).
+    std::shared_ptr<tree> ttrue;    ///< Map the subset f(p).
+    std::shared_ptr<tree> tfalse;   ///< Map the subset !f(p).
     double label;     ///< label of the branch.
   };
 
@@ -63,24 +63,24 @@ namespace classification
   {	}
 
 
-  template <typename T>
-  inline
-  tree<T>::tree( const tree& rh )
-    : f(rh.f), ttrue(nullptr), tfalse(nullptr)
-  {
-    label = rh.label;
-    if (rh.ttrue != nullptr)
-      ttrue  = new tree(*rh.ttrue);
-    if (rh.tfalse != nullptr)
-      tfalse = new tree(*rh.tfalse);
-  }
+  // template <typename T>
+  // inline
+  // tree<T>::tree( const tree& rh )
+  //   : f(rh.f), ttrue(nullptr), tfalse(nullptr)
+  // {
+  //   label = rh.label;
+  //   if (rh.ttrue != nullptr)
+  //     ttrue  = new tree(*rh.ttrue);
+  //   if (rh.tfalse != nullptr)
+  //     tfalse = new tree(*rh.tfalse);
+  // }
 
 
   template <typename T>
   inline
-  tree<T> * tree<T>::get_region( const T& p )
+  std::shared_ptr<tree<T>> tree<T>::get_region( const T& p )
   {
-    tree * t = this;
+    std::shared_ptr<tree> t = tree<T>::shared_from_this();
 
     while (t != nullptr && (t->ttrue != nullptr || t->tfalse != nullptr))
     {
@@ -95,32 +95,32 @@ namespace classification
 
   template <typename T>
   inline
-  tree<T>& tree<T>::operator=( const tree& t )
+  tree<T>& tree<T>::operator=( const tree& rh )
   {
-    if (&t != this)
+    if (&rh != this)
     {
-      tree * tmp_true  = nullptr;
-      tree * tmp_false = nullptr;
+      //tree * tmp_true  = nullptr;
+      //tree * tmp_false = nullptr;
 
-      f = t.f;
-      try {
-        if (t.ttrue != nullptr)
-          tmp_true  = new tree(*t.ttrue);
-        if (t.tfalse != nullptr)
-          tmp_false = new tree(*t.tfalse);
-      } catch (...) {
-        // Mandatory if tmp_true creation succeed but tmp_false failed
-        delete tmp_true;
-        delete tmp_false;
-        throw;
-      }
+      f = rh.f;
+      // try {
+      //   if (rh.ttrue != nullptr)
+      //     tmp_true  = new tree(*rh.ttrue);
+      //   if (rh.tfalse != nullptr)
+      //     tmp_false = new tree(*rh.tfalse);
+      // } catch (...) {
+      //   // Mandatory if tmp_true creation succeed but tmp_false failed
+      //   delete tmp_true;
+      //   delete tmp_false;
+      //   throw;
+      // }
 
-      delete ttrue;
-      delete tfalse;
+      // delete ttrue;
+      // delete tfalse;
 
-      ttrue  = tmp_true;
-      tfalse = tmp_false;
-      label  = t.label;
+      ttrue  = std::move(rh.ttrue);
+      tfalse = std::move(rh.tfalse);
+      label  = rh.label;
     }
     return *this;
   }
@@ -129,8 +129,8 @@ namespace classification
   inline
   tree<T>::~tree()
   {
-    delete tfalse;
-    delete ttrue;
+    //delete tfalse;
+    //delete ttrue;
   }
 
 } // end of namespace classification

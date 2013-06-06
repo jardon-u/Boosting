@@ -73,7 +73,7 @@ namespace classification
               std::vector<weight_t>&      w );
 
     /// Recursively split region
-    tree<point_t> * split( obs_t v, unsigned depth = 0 );
+    std::shared_ptr<tree<point_t>> split( obs_t v, unsigned depth = 0 );
 
     /// Get splitting dimension j and threshold s
     void get_splitting( size_t& j, value_t& s, const obs_t& v );
@@ -101,7 +101,7 @@ namespace classification
   private:
     double variance(double sum, double sum2, int n);
 
-    tree<point_t> * tree_; ///< underlying tree
+    std::shared_ptr<tree<point_t>> tree_; ///< underlying tree
 
     unsigned depth_limit;   ///< max depth of the tree
     unsigned max_node_size; ///< max observation per node
