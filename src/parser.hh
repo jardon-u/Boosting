@@ -13,10 +13,10 @@ template <typename L>
 void get_labels(std::ifstream& is,
                 L& labels)
 {
-  char line[1024];
-  is.getline(line, 1024);
+  std::string line;
+  std::getline(is, line);
 
-  char * s = line;
+  char * s = (char *) line.c_str();
   char ** ss = &s;
 
   while (**ss != '\n' && **ss != '\0')
@@ -27,16 +27,21 @@ void get_labels(std::ifstream& is,
       labels.push_back(-1);
     (*ss)++;
   }
+  if ((is.rdstate() & std::ifstream::failbit ) != 0)
+  {
+    std::cerr << "[ERR] Unknown error when parsing labels\n";
+  }
 }
 
 template <typename F>
 void get_features(std::ifstream& is,
                   F& features)
 {
-  char line[1024] = {0};
-  while (is.getline(line, 1024))
+  std::string line;
+  int nb_lines = 0;
+  while (std::getline(is, line))
   {
-    char  * s = line;
+    char  * s = (char *) line.c_str();
     char ** ss = &s;
 
     std::vector<double> feature;
@@ -48,9 +53,13 @@ void get_features(std::ifstream& is,
     }
     if (feature.size() != 0)
       features.push_back(feature);
+    nb_lines++;
   }
-  if ( (is.rdstate() & std::ifstream::failbit ) != 0 )
-    std::cerr << "[ERR] Unknown error parsing features\n";
+  if (nb_lines == 0 && (is.rdstate() & std::ifstream::failbit ) != 0)
+  {
+    std::cerr << "[ERR] Unknown error when parsing features\n";
+    std::cerr << "      next token was " << is << std::endl;
+  }
 }
 
 
@@ -67,16 +76,16 @@ void load_file(const std::string& fn,
   }
 
   // get labels for patients (Tumoral, Normal)
-  std::cout << "get_labels" << std::endl;
+  //std::cout << "get_labels" << std::endl;
   get_labels(is, labels);
 
   // get transcripts for every genes
-  std::cout << "get_features" << std::endl;
+  //std::cout << "get_features" << std::endl;
   std::vector< std::vector<double> > transcripts;
   get_features(is, transcripts);
 
   // convert to feature vectors for each patient
-  std::cout << "convert features" << std::endl;
+  //std::cout << "convert features" << std::endl;
   features.resize(labels.size());
   for (unsigned j = 0; j < features.size(); j++)
     for (unsigned i = 0; i < transcripts.size(); i++)

@@ -111,7 +111,7 @@ int main(int argc, char ** argv)
   std::vector<int>       labels;
   load_file(std::string(argv[1]),labels,features);
 
-  std::cout << "learning/test data" << std::endl;
+  //std::cout << "learning/test data" << std::endl;
   // learning/test data
   std::vector<feature_t> lfeatures, tfeatures;
   std::vector<int>       llabels, tlabels;
@@ -120,8 +120,8 @@ int main(int argc, char ** argv)
             lfeatures, llabels,
             tfeatures, tlabels);
 
-  std::cout << "learning set: " << lfeatures.size() << std::endl;
-  std::cout << "test     set: " << tfeatures.size() << std::endl;
+  //std::cout << "learning set: " << lfeatures.size() << std::endl;
+  //std::cout << "test     set: " << tfeatures.size() << std::endl;
 
   std::cout << "Boost" << std::endl;
   booster_t g(lfeatures, llabels, 10);
