@@ -179,14 +179,14 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
 
   label_t majority_label = math::majority_label(v);
   if (v.size() <= max_node_size || depth >= depth_limit)
-    return std::shared_ptr<tree<point_t>>(new tree<point_t>( true_lambda, majority_label ));
+    return std::make_shared< tree<point_t> >( true_lambda, majority_label );
 
   size_t  j; // dimension to split
   value_t s; // splitting point
   get_splitting(j, s, v);
 
   auto splitting_lambda = [j,s](point_t x)->bool{ return x[j] <= s; };
-  tree<point_t> * node = new tree<point_t>(splitting_lambda);
+  auto node = std::make_shared< tree<point_t> >(splitting_lambda);
 
   // Split v (copy to new vectors IS an optimization)
   obs_t v1, v2;
@@ -230,7 +230,7 @@ classification_tree<T,INDEX,C>::split(obs_t v, unsigned depth)
   node->ttrue  = split(v1, depth+1);
   node->tfalse = split(v2, depth+1);
 
-  return std::make_shared< tree<point_t> >(node);
+  return node;
 }
 
 
@@ -295,7 +295,7 @@ operator=(const classification_tree<T,INDEX,C>& rh)
   if (this != &rh)
   {
     if (rh.tree_ != 0)
-      tree_  = new tree<point_t>(*rh.tree_);
+      tree_  = rh.tree_;
   }
   return *this;
 }

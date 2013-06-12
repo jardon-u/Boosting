@@ -63,17 +63,17 @@ namespace classification
   {	}
 
 
-  // template <typename T>
-  // inline
-  // tree<T>::tree( const tree& rh )
-  //   : f(rh.f), ttrue(nullptr), tfalse(nullptr)
-  // {
-  //   label = rh.label;
-  //   if (rh.ttrue != nullptr)
-  //     ttrue  = new tree(*rh.ttrue);
-  //   if (rh.tfalse != nullptr)
-  //     tfalse = new tree(*rh.tfalse);
-  // }
+  template <typename T>
+  inline
+  tree<T>::tree( const tree& rh )
+    : f(rh.f), ttrue(nullptr), tfalse(nullptr)
+  {
+     label = rh.label;
+     if (rh.ttrue != nullptr)
+       ttrue  = rh.ttrue;
+     if (rh.tfalse != nullptr)
+       tfalse = rh.tfalse;
+  }
 
 
   template <typename T>
