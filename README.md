@@ -22,9 +22,9 @@ This library is headers only. See USAGE section.
 
         using namespace classification;
 
-        typedef std::vector<double> feature_t;
+        typedef std::vector<double>                      feature_t;
         typedef classification_tree<feature_t, misclass> classifier_t;
-        typedef adaboost<classifier_t> booster_t;
+        typedef adaboost<classifier_t>                   booster_t;
 
         // learning/test  data
         std::vector<feature_t> lfeatures, tfeatures;
