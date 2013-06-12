@@ -1,22 +1,19 @@
-Boosting : Classification and Regression Tree Boosting in C++11
-===============================================================
+# Boosting : Generic Machine Learning Library in c++11
 
 This library is a machine learning framework providing an
-efficient implementation of CART Boosting in C++11.
+efficient implementation of Classification and Regression
+Tree Boosting in C++11.
 
 This library is headers only. See USAGE section.
 
-DEPENDENCIES:
--------------
+### DEPENDENCIES:
         null
 
-INSTALL:
---------
+### INSTALL:
         # compile a test program (original data subject to copyright)
         ./configure && make
 
-USAGE:
-------
+### USAGE:
 ```c++
         #include "classification_tree.hh"
         #include "adaboost.hh"
