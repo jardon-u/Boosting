@@ -1,4 +1,5 @@
-# Boosting : Generic Machine Learning Library in c++11
+# Boosting
+## Generic Machine Learning Library in c++11
 
 This library is a machine learning framework providing an
 efficient implementation of Classification and Regression
