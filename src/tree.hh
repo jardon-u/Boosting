@@ -22,9 +22,6 @@ namespace classification
   class tree : public std::enable_shared_from_this<tree<T>>
   {
   public:
-    /// Copy Ctor
-    tree(const tree& t);
-
     /// Ctor with label
     /// \p fun Splitting function
     /// \p label
@@ -36,12 +33,6 @@ namespace classification
 
     /// return pointer deepest node holding \p p.
     std::shared_ptr<tree> get_region(const T& p);
-
-    /// Assignment operator performing deep copy.
-    tree& operator=(const tree& t);
-
-    /// Dtor
-    ~tree();
 
     const std::function<bool(T)> f; ///< Splitting function.
     std::shared_ptr<tree> ttrue;    ///< Map the subset f(p).
@@ -62,20 +53,6 @@ namespace classification
     :  f(fun), ttrue(nullptr), tfalse(nullptr), label(label_)
   {	}
 
-
-  template <typename T>
-  inline
-  tree<T>::tree( const tree& rh )
-    : f(rh.f), ttrue(nullptr), tfalse(nullptr)
-  {
-     label = rh.label;
-     if (rh.ttrue != nullptr)
-       ttrue  = rh.ttrue;
-     if (rh.tfalse != nullptr)
-       tfalse = rh.tfalse;
-  }
-
-
   template <typename T>
   inline
   std::shared_ptr<tree<T>> tree<T>::get_region( const T& p )
@@ -90,47 +67,6 @@ namespace classification
       throw std::runtime_error("get_region failed");
 
     return t;
-  }
-
-
-  template <typename T>
-  inline
-  tree<T>& tree<T>::operator=( const tree& rh )
-  {
-    if (&rh != this)
-    {
-      //tree * tmp_true  = nullptr;
-      //tree * tmp_false = nullptr;
-
-      f = rh.f;
-      // try {
-      //   if (rh.ttrue != nullptr)
-      //     tmp_true  = new tree(*rh.ttrue);
-      //   if (rh.tfalse != nullptr)
-      //     tmp_false = new tree(*rh.tfalse);
-      // } catch (...) {
-      //   // Mandatory if tmp_true creation succeed but tmp_false failed
-      //   delete tmp_true;
-      //   delete tmp_false;
-      //   throw;
-      // }
-
-      // delete ttrue;
-      // delete tfalse;
-
-      ttrue  = std::move(rh.ttrue);
-      tfalse = std::move(rh.tfalse);
-      label  = rh.label;
-    }
-    return *this;
-  }
-
-  template <typename T>
-  inline
-  tree<T>::~tree()
-  {
-    //delete tfalse;
-    //delete ttrue;
   }
 
 } // end of namespace classification
